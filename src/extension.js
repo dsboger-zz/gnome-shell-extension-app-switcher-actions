@@ -34,6 +34,7 @@ let AppSwitcherPopup_keyPressHandler_orig;
 
 const AppSwitcherPopup_keyPressHandler_mod = function(keysym, action) {
 	if (!this._thumbnailsFocused && keysym == Clutter.Up) {
+		this._select(this._selectedIndex, null, true);
 		this._showSelectedActionsMenu();
 		return Clutter.EVENT_STOP;
 	}
@@ -103,11 +104,11 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 	let keysym = event.get_key_symbol();
 	switch (keysym) {
 		case Clutter.Right:
-			this._select(this._next());
+			this._select(this._next(), null, true);
 			this._showSelectedActionsMenu();
 			return Clutter.EVENT_STOP;
 		case Clutter.Left:
-			this._select(this._previous());
+			this._select(this._previous(), null, true);
 			this._showSelectedActionsMenu();
 			return Clutter.EVENT_STOP;
 		case Clutter.Up:
