@@ -4,7 +4,7 @@ Press Up when switching apps with Alt+Tab (or Super+Tab) to show a menu with act
 
 Git repository: https://github.com/dsboger/gnome-shell-extension-app-switcher-actions
 
-E.g.o: (pending)
+E.g.o: https://extensions.gnome.org/extension/1324/app-switcher-actions/
 
 ## Notes
 
