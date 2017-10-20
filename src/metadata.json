@@ -1,0 +1,8 @@
+{
+	"shell-version": ["3.26"],
+	"uuid": "gnome-shell-extension-app-switcher-actions.dsboger@gmail.com",
+	"name": "App Switcher Actions",
+	"description": "Press Up when switching apps with Alt+Tab (or Super+Tab) to show a menu with actions",
+	"url": "https://github.com/dsboger/gnome-shell-extension-app-switcher-actions",
+	"version": 1
+}
