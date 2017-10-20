@@ -120,7 +120,6 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 				this.actor.grab_key_focus();
 				return Clutter.EVENT_STOP;
 			}
-			return Clutter.EVENT_PROPAGATE;
 	}
 	return Clutter.EVENT_PROPAGATE;
 };
