@@ -110,26 +110,23 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 		this.actor.grab_key_focus();
 		this._keyPressHandler(keysym, action);
 		return Clutter.EVENT_STOP;
-	}
-	switch (keysym) {
-		case Clutter.Right:
-			this._select(this._next(), null, true);
-			this._showSelectedActionsMenu();
+	} else if (keysym == Clutter.Right || action == Meta.KeyBindingAction.SWITCH_APPLICATIONS) {
+		this._select(this._next(), null, true);
+		this._showSelectedActionsMenu();
+		return Clutter.EVENT_STOP;
+	} else if (keysym == Clutter.Left || action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD) {
+		this._select(this._previous(), null, true);
+		this._showSelectedActionsMenu();
+		return Clutter.EVENT_STOP;
+	} else if (keysym == Clutter.Up || keysym == Clutter.Down) {
+		let menu = actor._delegate;
+		let menuItems = menu._getMenuItems();
+		let boundIndex = (keysym == Clutter.Up ? 0 : menuItems.length - 1);
+		if (menuItems[boundIndex].active) {
+			this._menuManager._closeMenu(true, menu);
+			this.actor.grab_key_focus();
 			return Clutter.EVENT_STOP;
-		case Clutter.Left:
-			this._select(this._previous(), null, true);
-			this._showSelectedActionsMenu();
-			return Clutter.EVENT_STOP;
-		case Clutter.Up:
-		case Clutter.Down:
-			let menu = actor._delegate;
-			let menuItems = menu._getMenuItems();
-			let boundIndex = (keysym == Clutter.Up ? 0 : menuItems.length - 1);
-			if (menuItems[boundIndex].active) {
-				this._menuManager._closeMenu(true, menu);
-				this.actor.grab_key_focus();
-				return Clutter.EVENT_STOP;
-			}
+		}
 	}
 	return Clutter.EVENT_PROPAGATE;
 };
