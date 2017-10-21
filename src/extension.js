@@ -148,16 +148,17 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 	let keysym = event.get_key_symbol();
 	let keycode = event.get_key_code();
 	let action = global.display.get_keybinding_action(keycode, event.get_state());
-	if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD) {
+	if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD
+			|| action == Meta.KeyBindingAction.SWITCH_APPLICATIONS || action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD) {
 		this._menuManager._closeMenu(true, actor._delegate);
 		this.actor.grab_key_focus();
 		this._keyPressHandler(keysym, action);
 		return Clutter.EVENT_STOP;
-	} else if (keysym == Clutter.Right || action == Meta.KeyBindingAction.SWITCH_APPLICATIONS) {
+	} else if (keysym == Clutter.Right) {
 		this._select(this._next(), null, true);
 		this._showSelectedActionsMenu();
 		return Clutter.EVENT_STOP;
-	} else if (keysym == Clutter.Left || action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD) {
+	} else if (keysym == Clutter.Left) {
 		this._select(this._previous(), null, true);
 		this._showSelectedActionsMenu();
 		return Clutter.EVENT_STOP;
