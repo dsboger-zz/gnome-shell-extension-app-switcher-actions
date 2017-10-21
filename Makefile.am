@@ -5,7 +5,7 @@ SUBDIRS = src
 zip-file: all
 	rm -rf $(builddir)/{_build,_install,$(PACKAGE).zip}; \
 	$(MKDIR_P) $(builddir)/_build; \
-	cp -r $(srcdir)/src/*.{js,json,css} $(builddir)/_build; \
+	cp -r $(srcdir){/src/*.{js,json,css},/schemas} $(builddir)/_build; \
 	(cd "$(builddir)/_build/"; \
 	zip -qr "$(abs_top_builddir)/$(PACKAGE).zip" .; \
 	); \
@@ -22,4 +22,5 @@ localinstall: zip-file
 	$(MKDIR_P) $(localprefix)/$${uuid}; \
 	(cd $(localprefix)/$${uuid}; \
 		unzip -q $${zip_file}; \
+		glib-compile-schemas schemas; \
 	);

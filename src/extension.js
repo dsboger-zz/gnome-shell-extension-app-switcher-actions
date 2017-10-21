@@ -18,9 +18,12 @@
 
 const Lang = imports.lang;
 
+const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
+const Gtk = imports.gi.Gtk;
 const Meta = imports.gi.Meta;
 const St = imports.gi.St;
+const Shell = imports.gi.Shell;
 
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
@@ -28,25 +31,65 @@ const AltTab = imports.ui.altTab;
 const AppDisplay = imports.ui.appDisplay;
 const BoxPointer = imports.ui.boxpointer;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+
+
+var settings;
+
+var switchActionsAction;
+var switchActionsBackwardAction;
+
+// Window manager "mods"
+
+var _startSwitcher = function(display, screen, window, binding) { // adapted from WindowManager._startSwitcher
+	/* prevent a corner case where both popups show up at once */
+	if (this._workspaceSwitcherPopup != null) {
+		this._workspaceSwitcherPopup.destroy();
+	}
+
+	let tabPopup = new AltTab.AppSwitcherPopup();
+
+	if (!tabPopup.show(binding.is_reversed(), binding.get_name(), binding.get_mask())) {
+		tabPopup.destroy();
+	}
+};
 
 // App switcher mods
 
+let AppSwitcherPopup_initialSelection_orig;
 let AppSwitcherPopup_keyPressHandler_orig;
 
-const AppSwitcherPopup_keyPressHandler_mod = function(keysym, action) {
-	if (!this._thumbnailsFocused && keysym == Clutter.Up) {
-		this._select(this._selectedIndex, null, true);
+const AppSwitcherPopup_initialSelection_mod = function(backward, binding) {
+	if (binding == 'switch-actions') {
+		this._select(0, null, true);
 		this._showSelectedActionsMenu();
+	} else if (binding == 'switch-actions-backward') {
+		this._select(0, null, true);
+		this._showSelectedActionsMenu(Gtk.DirectionType.UP);
+	} else {
+		AppSwitcherPopup_initialSelection_orig.apply(this, [backward, binding]);
+	}
+};
+
+const AppSwitcherPopup_keyPressHandler_mod = function(keysym, action) {
+	if (!this._thumbnailsFocused && keysym == Clutter.Up || action == switchActionsAction || action == switchActionsBackwardAction) {
+		this._select(this._selectedIndex, null, true);
+		this._showSelectedActionsMenu(action == switchActionsBackwardAction ? Gtk.DirectionType.UP : null);
 		return Clutter.EVENT_STOP;
 	}
 	return AppSwitcherPopup_keyPressHandler_orig.apply(this, [keysym, action]);
 };
 
-const AppSwitcherPopup_showSelectedActionsMenu = function() {
+const AppSwitcherPopup_showSelectedActionsMenu = function(direction) {
 	let appIcon = this._items[this._selectedIndex];
 	let actionsMenu = this._getActionsMenu(appIcon);
 	this._menuManager._changeMenu(actionsMenu);
-	actionsMenu.firstMenuItem.setActive(true);
+	if (direction == Gtk.DirectionType.UP) {
+		let actionsMenuItems = actionsMenu._getMenuItems();
+		actionsMenuItems[actionsMenuItems.length - 1].setActive(true);
+	} else {
+		actionsMenu.firstMenuItem.setActive(true);
+	}
 };
 
 const AppSwitcherPopup_getActionsMenu = function(appIcon) {
@@ -118,13 +161,19 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 		this._select(this._previous(), null, true);
 		this._showSelectedActionsMenu();
 		return Clutter.EVENT_STOP;
-	} else if (keysym == Clutter.Up || keysym == Clutter.Down) {
+	} else if (keysym == Clutter.Up || keysym == Clutter.Down || action == switchActionsAction || action == switchActionsBackwardAction) {
 		let menu = actor._delegate;
 		let menuItems = menu._getMenuItems();
-		let boundIndex = (keysym == Clutter.Up ? 0 : menuItems.length - 1);
+		let boundIndex = (keysym == Clutter.Up || action == switchActionsBackwardAction ? 0 : menuItems.length - 1);
 		if (menuItems[boundIndex].active) {
 			this._menuManager._closeMenu(true, menu);
 			this.actor.grab_key_focus();
+			return Clutter.EVENT_STOP;
+		} else if (action == switchActionsAction) {
+			actor.navigate_focus(menu._activeMenuItem.actor, Gtk.DirectionType.DOWN, false);
+			return Clutter.EVENT_STOP;
+		} else if (action == switchActionsBackwardAction) {
+			actor.navigate_focus(menu._activeMenuItem.actor, Gtk.DirectionType.UP, false);
 			return Clutter.EVENT_STOP;
 		}
 	}
@@ -153,8 +202,41 @@ var _onActionsMenuActorKeyReleased = function(actor, event) {
 function init(metadata) {
 }
 
+var _initSettings = function() { // adapted from famed convenience.js
+	let extension = ExtensionUtils.getCurrentExtension();
+	let schemaDir = extension.dir.get_child('schemas');
+	let schemaSource;
+	if (schemaDir.query_exists(null)) { // local installation
+		schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir.get_path(),
+				Gio.SettingsSchemaSource.get_default(), false);
+	} else { // schema is in default system path
+		schemaSource = GioSSS.get_default();
+	}
+	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.app-switcher-actions',
+										true);
+	if (!schemaObj) {
+		throw new Error('Schema ' + schema + ' could not be found for extension '
+						+ extension.metadata.uuid + '. Please check your installation.');
+	}
+
+	settings = new Gio.Settings({ settings_schema: schemaObj });
+}
+
 function enable() {
+	// Keybindings
+	_initSettings();
+
+	switchActionsAction = Main.wm.addKeybinding('switch-actions',
+			settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
+			Lang.bind(Main.wm, _startSwitcher));
+	switchActionsBackwardAction = Main.wm.addKeybinding('switch-actions-backward',
+			settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
+			Lang.bind(Main.wm, _startSwitcher));
+
 	// App switcher mods
+	AppSwitcherPopup_initialSelection_orig = AltTab.AppSwitcherPopup.prototype._initialSelection;
+	AltTab.AppSwitcherPopup.prototype._initialSelection = AppSwitcherPopup_initialSelection_mod;
+
 	AppSwitcherPopup_keyPressHandler_orig = AltTab.AppSwitcherPopup.prototype._keyPressHandler;
 	AltTab.AppSwitcherPopup.prototype._keyPressHandler = AppSwitcherPopup_keyPressHandler_mod;
 
@@ -164,7 +246,20 @@ function enable() {
 }
 
 function disable() {
+	// Keybindings
+	Main.wm.removeKeybinding('switch-actions');
+	switchActionsAction = null;
+
+	Main.wm.removeKeybinding('switch-actions-backward');
+	switchActionsBackwardAction = null;
+
+	settings.run_dispose();
+	settings = null;
+
 	// App switcher mods
+	AltTab.AppSwitcherPopup.prototype._initialSelection = AppSwitcherPopup_initialSelection_orig;
+	AppSwitcherPopup_initialSelection_orig = null;
+
 	AltTab.AppSwitcherPopup.prototype._keyPressHandler = AppSwitcherPopup_keyPressHandler_orig;
 	AppSwitcherPopup_keyPressHandler_orig = null;
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schemalist>
+	<schema path="/org/gnome/shell/extensions/app-switcher-actions/" id="org.gnome.shell.extensions.app-switcher-actions">
+		<key type="as" name="switch-actions">
+			<default><![CDATA[['<Super>1']]]></default>
+			<summary>Switch to next action.</summary>
+		</key>
+		<key type="as" name="switch-actions-backward">
+			<default><![CDATA[['<Super><Shift>1']]]></default>
+			<summary>Switch to previous action.</summary>
+		</key>
+	</schema>
+</schemalist>
+ 					
