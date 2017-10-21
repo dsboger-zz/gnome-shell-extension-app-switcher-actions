@@ -109,11 +109,15 @@ const AppSwitcherPopup_getActionsMenu = function(appIcon) {
 		// populate actionsMenu only once, since it is tied to short-lived popup
 		actionsMenu._redisplay();
 		// hack to remove list of windows (redundant with 'switch-group*' actions)
-		let firstItem = actionsMenu.firstMenuItem;
-		while (!(firstItem instanceof PopupMenu.PopupSeparatorMenuItem)) {
+		let nWindows = appIcon.app.get_n_windows();
+		while (nWindows > 0) {
+			let firstItem = actionsMenu.firstMenuItem;
+			if (!(firstItem instanceof PopupMenu.PopupSeparatorMenuItem)) {
+				nWindows--;
+			}
 			firstItem.destroy();
-			firstItem = actionsMenu.firstMenuItem;
 		}
+		let firstItem = actionsMenu.firstMenuItem;
 		while (firstItem instanceof PopupMenu.PopupSeparatorMenuItem) {
 			firstItem.destroy();
 			firstItem = actionsMenu.firstMenuItem;
