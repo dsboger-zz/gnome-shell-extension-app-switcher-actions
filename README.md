@@ -8,6 +8,27 @@ Git repository: https://github.com/dsboger/gnome-shell-extension-app-switcher-ac
 
 E.g.o: https://extensions.gnome.org/extension/1324/app-switcher-actions/
 
+## Usage
+
+The actions menu can be brought up in a few different ways:
+
+- Pressing Super+1 (or Alt+1) will show the app switcher with the actions menu
+open for the currently focused app
+- When the app switcher is already visible by pessing Super+Tab, Alt+Tab, Super+AboveTab ou Alt+AboveTab,
+pressing Super+1 (or Alt+1) will open the actions menu for the currently selected app in the popup
+- Pressing Up in the app switcher will also open the actions menu for the currently selected app
+
+The actions menu can be navigated with the Up and Down arrows or by priming Super+1, Alt+1, Super+Shift+1 or
+Alt+Shift+1 repeatedly. Pressing Esc or moving past the bounds of the menu will close it and bring back
+focus to the app icon in the switcher.
+
+## Settings
+
+The extension settings panel can be used to customize the keyboard shortcuts Super+1 (Alt+1) and Super+Shift+1
+(Alt+Shift+1). Keep in mind, though, that these shortcuts are integrated with the app switcher ones, so the
+same modifier must be used. For example, if you only use Alt+Tab and Alt+Shift+Tab for the app switcher, then
+using Super+1 and Super+Shift+1 for the actions menu will not work.
+
 ## Notes
 
  - App Switcher Actions was tested with GNOME Shell 3.26
