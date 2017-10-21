@@ -154,14 +154,6 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 		this.actor.grab_key_focus();
 		this._keyPressHandler(keysym, action);
 		return Clutter.EVENT_STOP;
-	} else if (keysym == Clutter.Right) {
-		this._select(this._next(), null, true);
-		this._showSelectedActionsMenu();
-		return Clutter.EVENT_STOP;
-	} else if (keysym == Clutter.Left) {
-		this._select(this._previous(), null, true);
-		this._showSelectedActionsMenu();
-		return Clutter.EVENT_STOP;
 	} else if (keysym == Clutter.Up || keysym == Clutter.Down || action == switchActionsAction || action == switchActionsBackwardAction) {
 		let menu = actor._delegate;
 		let menuItems = menu._getMenuItems();
