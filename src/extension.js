@@ -110,9 +110,12 @@ const AppSwitcherPopup_getActionsMenu = function(appIcon) {
 
 		// populate actionsMenu only once, since it is tied to short-lived popup
 		actionsMenu._redisplay();
-		// hack to remove leading separator for apps without open windows (i.e. Super+Tab Launcher's)
-		// setActive(true) does not work on separators
+		// hack to remove list of windows (redundant with 'switch-group*' actions)
 		let firstItem = actionsMenu.firstMenuItem;
+		while (!(firstItem instanceof PopupMenu.PopupSeparatorMenuItem)) {
+			firstItem.destroy();
+			firstItem = actionsMenu.firstMenuItem;
+		}
 		while (firstItem instanceof PopupMenu.PopupSeparatorMenuItem) {
 			firstItem.destroy();
 			firstItem = actionsMenu.firstMenuItem;
