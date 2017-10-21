@@ -32,9 +32,7 @@ const AppDisplay = imports.ui.appDisplay;
 const BoxPointer = imports.ui.boxpointer;
 
 const ExtensionUtils = imports.misc.extensionUtils;
-
-
-var settings;
+const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 
 var switchActionsAction;
 var switchActionsBackwardAction;
@@ -198,29 +196,9 @@ var _onActionsMenuActorKeyReleased = function(actor, event) {
 function init(metadata) {
 }
 
-var _initSettings = function() { // adapted from famed convenience.js
-	let extension = ExtensionUtils.getCurrentExtension();
-	let schemaDir = extension.dir.get_child('schemas');
-	let schemaSource;
-	if (schemaDir.query_exists(null)) { // local installation
-		schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir.get_path(),
-				Gio.SettingsSchemaSource.get_default(), false);
-	} else { // schema is in default system path
-		schemaSource = GioSSS.get_default();
-	}
-	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.app-switcher-actions',
-										true);
-	if (!schemaObj) {
-		throw new Error('Schema ' + schema + ' could not be found for extension '
-						+ extension.metadata.uuid + '. Please check your installation.');
-	}
-
-	settings = new Gio.Settings({ settings_schema: schemaObj });
-}
-
 function enable() {
 	// Keybindings
-	_initSettings();
+	let settings = Settings.initSettings();
 
 	switchActionsAction = Main.wm.addKeybinding('switch-actions',
 			settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
@@ -249,8 +227,7 @@ function disable() {
 	Main.wm.removeKeybinding('switch-actions-backward');
 	switchActionsBackwardAction = null;
 
-	settings.run_dispose();
-	settings = null;
+	Settings.destroySettings();
 
 	// App switcher mods
 	AltTab.AppSwitcherPopup.prototype._initialSelection = AppSwitcherPopup_initialSelection_orig;
