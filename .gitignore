@@ -7,7 +7,6 @@ config.status
 configure
 gnome-shell-extension-app-switcher-actions.zip
 m4/
-po/LINGUAS
 po/Makefile.in.in
 po/Makevars.template
 po/POTFILES
@@ -21,6 +20,7 @@ po/quot.sed
 po/remove-potcdate.sed
 po/remove-potcdate.sin
 po/stamp-po
+schemas/gnome-shell-extension-app-switcher-actions.gschema.xml
 *~
 Makecache
 Makefile

@@ -16,16 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
+const Gettext = imports.gettext;
 
 const ExtensionUtils = imports.misc.extensionUtils;
+const Config = imports.misc.config;
 const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 
-var box;
+const TRANSLATION_DOMAIN = 'gnome-shell-extension-app-switcher-actions';
+const _ = Gettext.domain(TRANSLATION_DOMAIN).gettext;
+
 
 function init() {
+	let extension = ExtensionUtils.getCurrentExtension();
+	let localeDir = extension.dir.get_child('locale');
+    if (localeDir.query_exists(null))
+        Gettext.bindtextdomain(TRANSLATION_DOMAIN, localeDir.get_path());
+    else
+        Gettext.bindtextdomain(TRANSLATION_DOMAIN, Config.LOCALEDIR);
 }
+
+var box;
 
 function _editShortcut(row, shortcutKey, settings) {
 	let parent = box.get_toplevel();
@@ -33,7 +46,7 @@ function _editShortcut(row, shortcutKey, settings) {
 		parent = null;
 	}
 	let dialog = new Gtk.MessageDialog({transient_for: parent, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.OK_CANCEL,
-			title: "Edit Shortcut",  text: "Select a new keyboard shortcut"});
+			title: _("Edit Shortcut"),  text: _("Select a new keyboard shortcut")});
 
 	let entry = new Gtk.Entry({visible: true});
 	entry.text = settings.get_strv(shortcutKey).toString();
@@ -46,7 +59,7 @@ function _editShortcut(row, shortcutKey, settings) {
 	dialog.destroy();
 }
 
-function _createShortcutRow(shortcutLabel, shortcutKey, settings) {
+function _createShortcutRow(shortcutKey, settings) {
 	let row = new Gtk.ListBoxRow();
 	row.visible = true;
 	{
@@ -55,7 +68,9 @@ function _createShortcutRow(shortcutLabel, shortcutKey, settings) {
 		shortcutBox.visible = true;
 		shortcutBox.margin = 25;
 		{
-			let shortcutNameLabel = Gtk.Label.new(shortcutLabel);
+			let schemaKey = settings.settings_schema.get_key(shortcutKey);
+			let shortcutSummary = schemaKey.get_summary();
+			let shortcutNameLabel = Gtk.Label.new(shortcutSummary);
 			shortcutNameLabel.visible = true;
 			shortcutNameLabel.halign = Gtk.Align.START;
 			shortcutBox.pack_start(shortcutNameLabel, true, true, 0);
@@ -89,7 +104,7 @@ function buildPrefsWidget() {
 		innerBox.halign = Gtk.Align.CENTER;
 		innerBox.spacing = 20;
 		{
-			let shortcutsLabel = Gtk.Label.new("Keyboard Shortcuts");
+			let shortcutsLabel = Gtk.Label.new(_("Keyboard Shortcuts"));
 			shortcutsLabel.visible = true;
 			shortcutsLabel.halign = Gtk.Align.START;
 			shortcutsLabel.get_style_context().add_class('title');
@@ -106,8 +121,8 @@ function buildPrefsWidget() {
 				listBox.selection_mode = Gtk.SelectionMode.NONE;
 				listBox.activate_on_single_click = true;
 				{
-					listBox.add(_createShortcutRow("Switch Actions", 'switch-actions', settings));
-					listBox.add(_createShortcutRow("Switch Actions Backward", 'switch-actions-backward', settings));
+					listBox.add(_createShortcutRow('switch-actions', settings));
+					listBox.add(_createShortcutRow('switch-actions-backward', settings));
 				}
 				listBox.connect('row-activated', function(list, row) { row._onActivate(); });
 				frame.add(listBox);
