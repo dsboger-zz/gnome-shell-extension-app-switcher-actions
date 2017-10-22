@@ -4,5 +4,5 @@
 	"name": "App Switcher Actions",
 	"description": "Access a menu with app actions from the app switcher (Super+Tab or Alt+Tab popup)",
 	"url": "https://github.com/dsboger/gnome-shell-extension-app-switcher-actions",
-	"version": 2
+	"version": 3
 }
