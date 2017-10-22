@@ -19,6 +19,6 @@ AC_PROG_INSTALL
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.19.7])
 
-AM_INIT_AUTOMAKE([1.15 foreign])
+AM_INIT_AUTOMAKE([1.15 foreign tar-ustar])
 AC_CONFIG_FILES([Makefile src/Makefile schemas/Makefile po/Makefile.in])
 AC_OUTPUT

@@ -6,6 +6,7 @@ config.log
 config.status
 configure
 gnome-shell-extension-app-switcher-actions.zip
+gnome-shell-extension-app-switcher-actions-*.tar.gz
 m4/
 po/Makefile.in.in
 po/Makevars.template
