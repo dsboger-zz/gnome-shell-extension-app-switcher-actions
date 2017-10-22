@@ -1,8 +1,6 @@
 # GNOME Shell Extension: App Switcher Actions
 
-Press Up when switching apps with Alt+Tab (or Super+Tab) to show a menu with actions.
-It is also possible to use the configurable keybindings Super+1 and Alt+1 to switch
-among actions.
+Access a menu with app actions from the app switcher (Super+Tab or Alt+Tab popup).
 
 Git repository: https://github.com/dsboger/gnome-shell-extension-app-switcher-actions
 
