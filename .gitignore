@@ -22,5 +22,6 @@ po/remove-potcdate.sed
 po/remove-potcdate.sin
 po/stamp-po
 *~
+Makecache
 Makefile
 Makefile.in
