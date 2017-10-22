@@ -28,24 +28,22 @@ const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 const TRANSLATION_DOMAIN = 'gnome-shell-extension-app-switcher-actions';
 const _ = Gettext.domain(TRANSLATION_DOMAIN).gettext;
 
+var box = null;
+var _toplevel = null;
 
-function init() {
-	let extension = ExtensionUtils.getCurrentExtension();
-	let localeDir = extension.dir.get_child('locale');
-    if (localeDir.query_exists(null))
-        Gettext.bindtextdomain(TRANSLATION_DOMAIN, localeDir.get_path());
-    else
-        Gettext.bindtextdomain(TRANSLATION_DOMAIN, Config.LOCALEDIR);
+function _getExtensionSettingsToplevel() {
+	if (!_toplevel && box) {
+		_toplevel = box.get_toplevel();
+		if (!_toplevel.is_toplevel()) {
+			_toplevel = null;
+		}
+	}
+	return _toplevel;
 }
 
-var box;
-
 function _editShortcut(row, shortcutKey, settings) {
-	let parent = box.get_toplevel();
-	if (!parent.is_toplevel()) {
-		parent = null;
-	}
-	let dialog = new Gtk.MessageDialog({transient_for: parent, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.OK_CANCEL,
+	let toplevel = _getExtensionSettingsToplevel();
+	let dialog = new Gtk.MessageDialog({transient_for: toplevel, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.OK_CANCEL,
 			title: _("Edit Shortcut"),  text: _("Select a new keyboard shortcut")});
 
 	let entry = new Gtk.Entry({visible: true});
@@ -54,7 +52,6 @@ function _editShortcut(row, shortcutKey, settings) {
 	if (dialog.run() == Gtk.ResponseType.OK) {
 		let newShortcuts = entry.text.split(',');
 		settings.set_strv(shortcutKey, newShortcuts);
-		row._shortcutValueLabel.label = entry.text;
 	}
 	dialog.destroy();
 }
@@ -66,7 +63,7 @@ function _createShortcutRow(shortcutKey, settings) {
 		let shortcutBox = new Gtk.Box();
 		shortcutBox.orientation = Gtk.Orientation.HORIZONTAL;
 		shortcutBox.visible = true;
-		shortcutBox.margin = 25;
+		shortcutBox.margin = 20;
 		{
 			let schemaKey = settings.settings_schema.get_key(shortcutKey);
 			let shortcutSummary = schemaKey.get_summary();
@@ -80,7 +77,10 @@ function _createShortcutRow(shortcutKey, settings) {
 			let shortcutValueLabel = Gtk.Label.new(switchActionsShortcut);
 			shortcutValueLabel.visible = true;
 			shortcutValueLabel.get_style_context().add_class('dim-label');
-			row._shortcutValueLabel = shortcutValueLabel;
+			let settingChangedId = settings.connect("changed::" + shortcutKey, function() {
+						shortcutValueLabel.label = settings.get_strv(shortcutKey).toString();
+					});
+			row.connect('destroy', function() { settings.disconnect(settingChangedId); });
 			shortcutBox.pack_start(shortcutValueLabel, false, false, 0);
 		}
 		row.add(shortcutBox);
@@ -134,3 +134,16 @@ function buildPrefsWidget() {
 
 	return box;
 }
+
+function init() {
+	let extension = ExtensionUtils.getCurrentExtension();
+	let localeDir = extension.dir.get_child('locale');
+    if (localeDir.query_exists(null))
+        Gettext.bindtextdomain(TRANSLATION_DOMAIN, localeDir.get_path());
+    else
+        Gettext.bindtextdomain(TRANSLATION_DOMAIN, Config.LOCALEDIR);
+
+    box = null;
+    _toplevel = null;
+}
+
