@@ -31,11 +31,80 @@ const AltTab = imports.ui.altTab;
 const AppDisplay = imports.ui.appDisplay;
 const BoxPointer = imports.ui.boxpointer;
 
+const Gettext = imports.gettext;
+
+const GS_ = Gettext.domain('gnome-shell').gettext;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 
 var switchActionsAction;
 var switchActionsBackwardAction;
+
+var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
+	Name: 'AppActionsMenu',
+	Extends: PopupMenu.PopupMenu,
+
+	_init: function(source) {
+		this.parent(source.actor, 0.5, St.Side.BOTTOM);
+		this._source = source;
+		source.actor.connect('notify::mapped', Lang.bind(this, function () {
+			if (!source.actor.mapped)
+				this.close();
+		}));
+		source.actor.connect('destroy', Lang.bind(this, this.destroy));
+		Main.uiGroup.add_actor(this.actor);
+	},
+
+	_redisplay: function() {
+		this.removeAll();
+
+		if (!this._source.app.is_window_backed()) {
+			let appInfo = this._source.app.get_app_info();
+			let actions = appInfo.list_actions();
+			if (this._source.app.can_open_new_window() &&
+					actions.indexOf('new-window') == -1) {
+				this._newWindowMenuItem = new PopupMenu.PopupMenuItem(GS_("New Window"));
+				this.addMenuItem(this._newWindowMenuItem);
+				this._newWindowMenuItem.connect('activate', Lang.bind(this, function() {
+					this._source.app.open_new_window(-1);
+				}));
+			}
+
+			if (AppDisplay.discreteGpuAvailable &&
+					this._source.app.state == Shell.AppState.STOPPED &&
+					actions.indexOf('activate-discrete-gpu') == -1) {
+				this._onDiscreteGpuMenuItem = new PopupMenu.PopupMenuItem(GS_("Launch using Dedicated Graphics Card"));
+				this.addMenuItem(this._onDiscreteGpuMenuItem);
+				this._onDiscreteGpuMenuItem.connect('activate', Lang.bind(this, function() {
+					this._source.app.launch(0, -1, true);
+				}));
+			}
+
+			for (let i = 0; i < actions.length; i++) {
+				let action = actions[i];
+				let item = new PopupMenu.PopupMenuItem(appInfo.get_action_name(action));
+				this.addMenuItem(item);
+				item.connect('activate', Lang.bind(this, function(emitter, event) {
+					this._source.app.launch_action(action, event.get_time(), -1);
+				}));
+			}
+		}
+
+		if (this._source.app.get_n_windows() > 0) {
+			if (this.numMenuItems > 0) {
+				this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+			}
+
+			this._quitMenuItem = new PopupMenu.PopupMenuItem(GS_("Quit"));
+			this.addMenuItem(this._quitMenuItem);
+			this._quitMenuItem.connect('activate', Lang.bind(this, function() {
+				this._source.app.request_quit();
+			}));
+		}
+	}
+
+});
 
 // Window manager "mods"
 
@@ -81,12 +150,14 @@ const AppSwitcherPopup_keyPressHandler_mod = function(keysym, action) {
 const AppSwitcherPopup_showSelectedActionsMenu = function(direction) {
 	let appIcon = this._items[this._selectedIndex];
 	let actionsMenu = this._getActionsMenu(appIcon);
-	this._menuManager._changeMenu(actionsMenu);
-	if (direction == Gtk.DirectionType.UP) {
-		let actionsMenuItems = actionsMenu._getMenuItems();
-		actionsMenuItems[actionsMenuItems.length - 1].setActive(true);
-	} else {
-		actionsMenu.firstMenuItem.setActive(true);
+	if (actionsMenu) {
+		this._menuManager._changeMenu(actionsMenu);
+		if (direction == Gtk.DirectionType.UP) {
+			let actionsMenuItems = actionsMenu._getMenuItems();
+			actionsMenuItems[actionsMenuItems.length - 1].setActive(true);
+		} else {
+			actionsMenu.firstMenuItem.setActive(true);
+		}
 	}
 };
 
@@ -96,35 +167,14 @@ const AppSwitcherPopup_getActionsMenu = function(appIcon) {
 			this._menuManager = new PopupMenu.PopupMenuManager(this);
 		}
 
-		// AppIconMenu expects this function to be present
-		appIcon.animateLaunch = function() {};
-
-		let actionsMenu = new AppDisplay.AppIconMenu(appIcon);
-
-		// hack to move the arrow to the bottom
-		actionsMenu._arrowSide = St.Side.BOTTOM;
-		actionsMenu._boxPointer._userArrowSide = St.Side.BOTTOM;
-		actionsMenu._boxPointer._border.queue_repaint();
-
-		// populate actionsMenu only once, since it is tied to short-lived popup
+		let actionsMenu = new AppActionsMenu(appIcon);
 		actionsMenu._redisplay();
-		// hack to remove list of windows (redundant with 'switch-group*' actions)
-		let nWindows = appIcon.app.get_n_windows();
-		while (nWindows > 0) {
-			let firstItem = actionsMenu.firstMenuItem;
-			if (!(firstItem instanceof PopupMenu.PopupSeparatorMenuItem)) {
-				nWindows--;
-			}
-			firstItem.destroy();
-		}
-		let firstItem = actionsMenu.firstMenuItem;
-		while (firstItem instanceof PopupMenu.PopupSeparatorMenuItem) {
-			firstItem.destroy();
-			firstItem = actionsMenu.firstMenuItem;
+		if (actionsMenu.numMenuItems == 0) {
+			actionsMenu.destroy();
+			return null;
 		}
 
 		actionsMenu.connect('open-state-changed', Lang.bind(this, _onActionsMenuOpenStateChanged));
-		actionsMenu.connect('activate-window', Lang.bind(this, _onActionsMenuActivateWindow));
 		actionsMenu.actor.connect('key-press-event', Lang.bind(this, _onActionsMenuActorKeyPressed));
 		actionsMenu.actor.connect('key-release-event', Lang.bind(this, _onActionsMenuActorKeyReleased));
 
@@ -138,14 +188,6 @@ var _onActionsMenuOpenStateChanged = function(menu, open) {
 	if (!open) {
 		this._disableHover();
 	}
-	return Clutter.EVENT_PROPAGATE;
-};
-
-var _onActionsMenuActivateWindow = function(menu, window) {
-	if (window) {
-		Main.activateWindow(window);
-	}
-	this.destroy();
 	return Clutter.EVENT_PROPAGATE;
 };
 
