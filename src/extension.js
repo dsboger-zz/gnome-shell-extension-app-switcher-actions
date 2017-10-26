@@ -162,8 +162,17 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 	} else if (keysym == Clutter.Up || keysym == Clutter.Down || action == switchActionsAction || action == switchActionsBackwardAction) {
 		let menu = actor._delegate;
 		let menuItems = menu._getMenuItems();
-		let boundIndex = (keysym == Clutter.Up || action == switchActionsBackwardAction ? 0 : menuItems.length - 1);
-		if (menuItems[boundIndex].active) {
+		let boundItem;
+		if (keysym == Clutter.Up || action == switchActionsBackwardAction) {
+			boundItem = menuItems[0];
+		} else {
+			boundItem = menuItems[menuItems.length - 1];
+			while (boundItem instanceof PopupMenu.PopupSubMenuMenuItem && boundItem.menu.isOpen && !boundItem.menu.isEmpty()) {
+				let subMenuItems = boundItem.menu._getMenuItems();
+				boundItem = subMenuItems[subMenuItems.length - 1];
+			}
+		}
+		if (boundItem.active) {
 			this._menuManager._closeMenu(true, menu);
 			this.actor.grab_key_focus();
 			return Clutter.EVENT_STOP;
