@@ -18,11 +18,12 @@
 
 
 const Gio = imports.gi.Gio;
+const Gdk = imports.gi.Gdk;
 const Gtk = imports.gi.Gtk;
 const Gettext = imports.gettext;
 var Dazzle;
 try {
-	//Dazzle = imports.gi.Dazzle;
+	Dazzle = imports.gi.Dazzle;
 } catch (e) {
 	// continue without Dazzle
 }
@@ -47,9 +48,9 @@ function _getExtensionSettingsToplevel() {
 	return _toplevel;
 }
 
-function _editShortcut(row, shortcutKey, shortcutSummary, settings) {
+function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 	let toplevel = _getExtensionSettingsToplevel();
-	if (Dazzle) {
+	if (Dazzle && !undazzle) {
 		let dialog = new Dazzle.ShortcutAccelDialog({ transient_for: toplevel, shortcut_title: shortcutSummary });
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			if (dialog.accelerator) {
@@ -122,7 +123,8 @@ function _createShortcutRow(shortcutKey, settings) {
 		row.add(shortcutBox);
 	}
 
-	row._onActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings); };
+	row._onUndazzledActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings, true); };
+	row._onActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings, false); };
 	return row;
 }
 
@@ -145,6 +147,15 @@ function buildPrefsWidget() {
 					listBox.add(_createShortcutRow('switch-actions-backward', settings));
 				}
 				listBox.connect('row-activated', function(list, row) { row._onActivate(); });
+				listBox.connect('button-press-event', function(listBox, event) {
+							let [hasButton, button] = event.get_button();
+							if (button != 1) {
+								let [hasCoords, x, y] = event.get_coords();
+								let row = listBox.get_row_at_y(y);
+								row._onUndazzledActivate();
+								return Gdk.EVENT_STOP;
+							}
+						});
 				frame.add(listBox);
 			}
 			innerBox.pack_start(frame, false, false, 0);
