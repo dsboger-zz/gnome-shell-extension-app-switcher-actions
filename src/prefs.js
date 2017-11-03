@@ -65,6 +65,9 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings) {
 		dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
 
 		let entry = new Gtk.Entry({ visible: true, text: settings.get_strv(shortcutKey).toString() });
+		entry.connect('activate', function() {
+					dialog.response(Gtk.ResponseType.ACCEPT);
+				});
 		dialog.get_message_area().pack_start(entry, false, false, 0);
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			settings.set_strv(shortcutKey, entry.text.split(','));
