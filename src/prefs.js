@@ -194,7 +194,9 @@ function buildPrefsWidget() {
 					listBox.add(_createShortcutRow('switch-actions', settings));
 					listBox.add(_createShortcutRow('switch-actions-backward', settings));
 				}
-				listBox.connect('row-activated', function(list, row) { row._onActivate(); });
+				listBox.connect('row-activated', function(list, row) {
+							row._onActivate();
+						});
 				listBox.connect('button-press-event', function(listBox, event) {
 							let [hasButton, button] = event.get_button();
 							if (button != 1) {
