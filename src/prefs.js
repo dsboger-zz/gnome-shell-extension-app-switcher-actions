@@ -32,7 +32,6 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Config = imports.misc.config;
 const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 
-const TRANSLATION_DOMAIN = 'gnome-shell-extension-app-switcher-actions';
 const GCC_ = Gettext.domain('gnome-control-center-2.0').gettext;
 
 var box = null;
