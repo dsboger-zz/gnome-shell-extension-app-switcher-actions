@@ -5,10 +5,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: GNU gnome-shell-extension-app-switcher-actions 2\n"
+"Project-Id-Version: GNU gnome-shell-extension-app-switcher-actions 4\n"
 "Report-Msgid-Bugs-To: https://github.com/dsboger/gnome-shell-extension-app-"
 "switcher-actions/issues\n"
-"POT-Creation-Date: 2017-10-22 01:28-0200\n"
+"POT-Creation-Date: 2017-11-03 21:18-0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,18 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-#: src/prefs.js:38
-msgid "Edit Shortcut"
-msgstr ""
-
-#: src/prefs.js:38
-msgid "Select a new keyboard shortcut"
-msgstr ""
-
-#: src/prefs.js:95
-msgid "Keyboard Shortcuts"
-msgstr ""
 
 #: schemas/gnome-shell-extension-app-switcher-actions.gschema.xml.in:6
 msgid "Switch to next action"
