@@ -26,7 +26,7 @@ const Config = imports.misc.config;
 const Settings = ExtensionUtils.getCurrentExtension().imports.settings;
 
 const TRANSLATION_DOMAIN = 'gnome-shell-extension-app-switcher-actions';
-const _ = Gettext.domain(TRANSLATION_DOMAIN).gettext;
+const GCC_ = Gettext.domain('gnome-control-center-2.0').gettext;
 
 var box = null;
 var _toplevel = null;
@@ -41,10 +41,11 @@ function _getExtensionSettingsToplevel() {
 	return _toplevel;
 }
 
-function _editShortcut(row, shortcutKey, settings) {
+function _editShortcut(row, shortcutKey, shortcutSummary, settings) {
 	let toplevel = _getExtensionSettingsToplevel();
 	let dialog = new Gtk.MessageDialog({transient_for: toplevel, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.OK_CANCEL,
-			title: _("Edit Shortcut"),  text: _("Select a new keyboard shortcut")});
+			title: GCC_("Set Shortcut")});
+	dialog.set_markup(GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary));
 
 	let entry = new Gtk.Entry({visible: true});
 	entry.text = settings.get_strv(shortcutKey).toString();
@@ -57,6 +58,9 @@ function _editShortcut(row, shortcutKey, settings) {
 }
 
 function _createShortcutRow(shortcutKey, settings) {
+	let schemaKey = settings.settings_schema.get_key(shortcutKey);
+	let shortcutSummary = schemaKey.get_summary();
+
 	let row = new Gtk.ListBoxRow();
 	row.visible = true;
 	{
@@ -64,9 +68,8 @@ function _createShortcutRow(shortcutKey, settings) {
 		shortcutBox.orientation = Gtk.Orientation.HORIZONTAL;
 		shortcutBox.visible = true;
 		shortcutBox.margin = 20;
+		shortcutBox.spacing = 10;
 		{
-			let schemaKey = settings.settings_schema.get_key(shortcutKey);
-			let shortcutSummary = schemaKey.get_summary();
 			let shortcutNameLabel = Gtk.Label.new(shortcutSummary);
 			shortcutNameLabel.visible = true;
 			shortcutNameLabel.halign = Gtk.Align.START;
@@ -86,7 +89,7 @@ function _createShortcutRow(shortcutKey, settings) {
 		row.add(shortcutBox);
 	}
 
-	row._onActivate = function() { _editShortcut(row, shortcutKey, settings); };
+	row._onActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings); };
 	return row;
 }
 
@@ -104,7 +107,7 @@ function buildPrefsWidget() {
 		innerBox.halign = Gtk.Align.CENTER;
 		innerBox.spacing = 20;
 		{
-			let shortcutsLabel = Gtk.Label.new(_("Keyboard Shortcuts"));
+			let shortcutsLabel = Gtk.Label.new(GCC_("Keyboard Shortcuts"));
 			shortcutsLabel.visible = true;
 			shortcutsLabel.halign = Gtk.Align.START;
 			shortcutsLabel.get_style_context().add_class('title');
@@ -136,14 +139,7 @@ function buildPrefsWidget() {
 }
 
 function init() {
-	let extension = ExtensionUtils.getCurrentExtension();
-	let localeDir = extension.dir.get_child('locale');
-    if (localeDir.query_exists(null))
-        Gettext.bindtextdomain(TRANSLATION_DOMAIN, localeDir.get_path());
-    else
-        Gettext.bindtextdomain(TRANSLATION_DOMAIN, Config.LOCALEDIR);
-
-    box = null;
+	box = null;
     _toplevel = null;
 }
 
