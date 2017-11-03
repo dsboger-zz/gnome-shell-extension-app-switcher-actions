@@ -51,7 +51,9 @@ function _getExtensionSettingsToplevel() {
 function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 	let toplevel = _getExtensionSettingsToplevel();
 	if (Dazzle && !undazzle) {
-		let dialog = new Dazzle.ShortcutAccelDialog({ transient_for: toplevel, shortcut_title: shortcutSummary });
+		let dialog = new Dazzle.ShortcutAccelDialog({
+				transient_for: toplevel,
+				shortcut_title: shortcutSummary });
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			if (dialog.accelerator) {
 				settings.set_strv(shortcutKey, [dialog.accelerator]);
@@ -61,11 +63,18 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 		}
 		dialog.destroy();
 	} else {
-		let dialog = new Gtk.MessageDialog({ transient_for: toplevel, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.CANCEL,
-				title: GCC_("Set Shortcut"), text: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary), use_markup: true });
+		let dialog = new Gtk.MessageDialog({
+				transient_for: toplevel,
+				message_type: Gtk.MessageType.QUESTION,
+				buttons: Gtk.ButtonsType.CANCEL,
+				title: GCC_("Set Shortcut"),
+				text: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
+				use_markup: true });
 		dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
 
-		let entry = new Gtk.Entry({ visible: true, text: settings.get_strv(shortcutKey).toString() });
+		let entry = new Gtk.Entry({
+				visible: true,
+				text: settings.get_strv(shortcutKey).toString() });
 		entry.connect('activate', function() {
 					dialog.response(Gtk.ResponseType.ACCEPT);
 				});
@@ -83,36 +92,56 @@ function _createShortcutRow(shortcutKey, settings) {
 
 	let row = new Gtk.ListBoxRow({ visible: true });
 	{
-		let shortcutBox = new Gtk.Box({ visible: true, orientation: Gtk.Orientation.HORIZONTAL, margin: 20, spacing: 10 });
+		let shortcutBox = new Gtk.Box({
+				visible: true,
+				orientation: Gtk.Orientation.HORIZONTAL,
+				margin: 20,
+				spacing: 10 });
 		{
-			let shortcutNameLabel = new Gtk.Label({ visible: true, halign: Gtk.Align.START, label: shortcutSummary });
+			let shortcutNameLabel = new Gtk.Label({
+					visible: true,
+					halign: Gtk.Align.START,
+					label: shortcutSummary });
 			shortcutBox.pack_start(shortcutNameLabel, true, true, 0);
 		}
 		{
 			let shortcuts = settings.get_strv(shortcutKey);
 			if (Dazzle) {
 				let shortcut = shortcuts.length > 0 ? shortcuts[0] : null;
-				let shortcutValueLabel = new Dazzle.ShortcutLabel({ visible: true, accelerator: shortcut });
+				let shortcutValueLabel = new Dazzle.ShortcutLabel({
+						visible: true,
+						accelerator: shortcut });
 				shortcutValueLabel.get_style_context().add_class('dim-label');
 				let settingChangedId = settings.connect("changed::" + shortcutKey, function() {
 							let shortcuts = settings.get_strv(shortcutKey);
 							shortcutValueLabel.accelerator = shortcuts.length > 0 ? shortcuts[0] : null;
 						});
-				row.connect('destroy', function() { settings.disconnect(settingChangedId); });
+				row.connect('destroy', function() {
+							settings.disconnect(settingChangedId);
+						});
 				shortcutBox.pack_start(shortcutValueLabel, false, false, 0);
 			} else {
-				let shortcutValueLabel = new Gtk.Label({ visible: true, label: shortcuts.toString() });
+				let shortcutValueLabel = new Gtk.Label({
+						visible: true,
+						label: shortcuts.toString() });
 				shortcutValueLabel.get_style_context().add_class('dim-label');
 				let settingChangedId = settings.connect("changed::" + shortcutKey, function() {
 							shortcutValueLabel.label = settings.get_strv(shortcutKey).toString();
 						});
-				row.connect('destroy', function() { settings.disconnect(settingChangedId); });
+				row.connect('destroy', function() {
+							settings.disconnect(settingChangedId);
+						});
 				shortcutBox.pack_start(shortcutValueLabel, false, false, 0);
 			}
 		}
 		{
-			let resetShortcutImage = new Gtk.Image({ visible: true, icon_name: 'edit-clear-symbolic', icon_size: Gtk.IconSize.BUTTON });
-			let resetShortcutButton = new Gtk.Button({ visible: true, image: resetShortcutImage,
+			let resetShortcutImage = new Gtk.Image({
+					visible: true,
+					icon_name: 'edit-clear-symbolic',
+					icon_size: Gtk.IconSize.BUTTON });
+			let resetShortcutButton = new Gtk.Button({
+					visible: true,
+					image: resetShortcutImage,
 					tooltip_text: GCC_("Reset the shortcut to its default value") });
 			resetShortcutButton.get_style_context().add_class('flat');
 			resetShortcutButton.connect('clicked', function() {
@@ -123,25 +152,45 @@ function _createShortcutRow(shortcutKey, settings) {
 		row.add(shortcutBox);
 	}
 
-	row._onUndazzledActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings, true); };
-	row._onActivate = function() { _editShortcut(row, shortcutKey, shortcutSummary, settings, false); };
+	row._onUndazzledActivate = function() {
+				_editShortcut(row, shortcutKey, shortcutSummary, settings, true);
+			};
+	row._onActivate = function() {
+				_editShortcut(row, shortcutKey, shortcutSummary, settings, false);
+			};
 	return row;
 }
 
 function buildPrefsWidget() {
 	let settings = Settings.initSettings();
 
-	box = new Gtk.Box({ visible: true, orientation: Gtk.Orientation.VERTICAL, margin: 20 });
+	box = new Gtk.Box({
+			visible: true,
+			orientation: Gtk.Orientation.VERTICAL,
+			margin: 20 });
 	{
-		let innerBox = new Gtk.Box({ visible: true, orientation: Gtk.Orientation.VERTICAL, halign: Gtk.Align.CENTER, spacing: 20 });
+		let innerBox = new Gtk.Box({
+				visible: true,
+				orientation: Gtk.Orientation.VERTICAL,
+				halign: Gtk.Align.CENTER,
+				spacing: 20 });
 		{
-			let shortcutsLabel = new Gtk.Label({ visible: true, halign: Gtk.Align.START, label: GCC_("Keyboard Shortcuts") });
+			let shortcutsLabel = new Gtk.Label({
+					visible: true,
+					halign: Gtk.Align.START,
+					label: GCC_("Keyboard Shortcuts") });
 			innerBox.pack_start(shortcutsLabel, false, false, 0);
 		}
 		{
-			let frame = new Gtk.Frame({ visible: true, width_request: 500, halign: Gtk.Align.CENTER });
+			let frame = new Gtk.Frame({
+					visible: true,
+					width_request: 500,
+					halign: Gtk.Align.CENTER });
 			{
-				let listBox = new Gtk.ListBox({ visible: true, selection_mode: Gtk.SelectionMode.NONE, activate_on_single_click: true });
+				let listBox = new Gtk.ListBox({
+						visible: true,
+						selection_mode: Gtk.SelectionMode.NONE,
+						activate_on_single_click: true });
 				{
 					listBox.add(_createShortcutRow('switch-actions', settings));
 					listBox.add(_createShortcutRow('switch-actions-backward', settings));
