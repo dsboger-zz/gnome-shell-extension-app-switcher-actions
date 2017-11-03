@@ -86,6 +86,16 @@ function _createShortcutRow(shortcutKey, settings) {
 			row.connect('destroy', function() { settings.disconnect(settingChangedId); });
 			shortcutBox.pack_start(shortcutValueLabel, false, false, 0);
 		}
+		{
+			let resetShortcutButton = Gtk.Button.new_from_icon_name('edit-clear-symbolic', Gtk.IconSize.BUTTON);
+			resetShortcutButton.visible = true;
+			resetShortcutButton.get_style_context().add_class('flat');
+			resetShortcutButton.set_tooltip_text(GCC_("Reset the shortcut to its default value"));
+			resetShortcutButton.connect('clicked', function() {
+						settings.reset(shortcutKey);
+					});
+			shortcutBox.pack_start(resetShortcutButton, false, false, 0);
+		}
 		row.add(shortcutBox);
 	}
 
