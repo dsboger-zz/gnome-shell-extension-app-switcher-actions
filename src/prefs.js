@@ -22,7 +22,7 @@ const Gtk = imports.gi.Gtk;
 const Gettext = imports.gettext;
 var Dazzle;
 try {
-	Dazzle = imports.gi.Dazzle;
+	//Dazzle = imports.gi.Dazzle;
 } catch (e) {
 	// continue without Dazzle
 }
@@ -60,12 +60,13 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings) {
 		}
 		dialog.destroy();
 	} else {
-		let dialog = new Gtk.MessageDialog({ transient_for: toplevel, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.OK_CANCEL,
+		let dialog = new Gtk.MessageDialog({ transient_for: toplevel, message_type: Gtk.MessageType.QUESTION, buttons: Gtk.ButtonsType.CANCEL,
 				title: GCC_("Set Shortcut"), text: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary), use_markup: true });
+		dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
 
 		let entry = new Gtk.Entry({ visible: true, text: settings.get_strv(shortcutKey).toString() });
 		dialog.get_message_area().pack_start(entry, false, false, 0);
-		if (dialog.run() == Gtk.ResponseType.OK) {
+		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			settings.set_strv(shortcutKey, entry.text.split(','));
 		}
 		dialog.destroy();
