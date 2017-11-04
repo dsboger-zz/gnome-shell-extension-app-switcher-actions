@@ -127,10 +127,12 @@ let AppSwitcherPopup_initialSelection_orig;
 let AppSwitcherPopup_keyPressHandler_orig;
 
 const AppSwitcherPopup_initialSelection_mod = function(backward, binding) {
+	// this only happens once for each time the popup is created
+	// we should monkey-patch _init instead, but this works and I'm lazy :)
 	if (this._switcherList && this._switcherList._items) {
-		let buttons = this._switcherList._items;
+		let items = this._switcherList._items;
 		for (let i = 0; i < items.length; i++) {
-			items[i].connect('button-press-event', Lang.bind(this, _onSwitcherListItemButtonPressEvent));
+			items[i].connect('button-press-event', Lang.bind(this, _onSwitcherListItemButtonPressEvent, i));
 		}
 	}
 	if (binding == 'switch-actions') {
@@ -144,7 +146,7 @@ const AppSwitcherPopup_initialSelection_mod = function(backward, binding) {
 	}
 };
 
-conts _onSwitcherListItemButtonPressEvent = function(actor, event) {
+const _onSwitcherListItemButtonPressEvent = function(actor, event, i) {
 	if (event.get_button() == 3) {
 		this._select(i, null, true);
 		this._showSelectedActionsMenu();
@@ -167,7 +169,7 @@ const AppSwitcherPopup_showSelectedActionsMenu = function(direction) {
 	let actionsMenu = this._getActionsMenu(appIcon);
 	if (actionsMenu) {
 		this._menuManager._changeMenu(actionsMenu);
-		this._menuManager.ignoreRelease();
+		this._menuManager.ignoreRelease(); // avoid closing the menu when opening with right click
 		if (direction == Gtk.DirectionType.UP) {
 			let actionsMenuItems = actionsMenu._getMenuItems();
 			actionsMenuItems[actionsMenuItems.length - 1].setActive(true);
@@ -245,7 +247,7 @@ var _onActionsMenuActorKeyPressed = function(actor, event) {
 	return Clutter.EVENT_PROPAGATE;
 };
 
-var _onActionsMenuActorKeyReleased = function(actor, event) {
+var _onActionsMenuActorKeyReleased = function(actor, event) { // based on SwitcherPopup._keyReleaseEvent
 	if (this._modifierMask) {
 		let [x, y, mods] = global.get_pointer();
 		let state = mods & this._modifierMask;
