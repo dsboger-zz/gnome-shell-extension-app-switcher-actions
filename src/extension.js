@@ -127,6 +127,12 @@ let AppSwitcherPopup_initialSelection_orig;
 let AppSwitcherPopup_keyPressHandler_orig;
 
 const AppSwitcherPopup_initialSelection_mod = function(backward, binding) {
+	if (this._switcherList && this._switcherList._items) {
+		let buttons = this._switcherList._items;
+		for (let i = 0; i < items.length; i++) {
+			items[i].connect('button-press-event', Lang.bind(this, _onSwitcherListItemButtonPressEvent));
+		}
+	}
 	if (binding == 'switch-actions') {
 		this._select(0, null, true);
 		this._showSelectedActionsMenu();
@@ -136,6 +142,15 @@ const AppSwitcherPopup_initialSelection_mod = function(backward, binding) {
 	} else {
 		AppSwitcherPopup_initialSelection_orig.apply(this, [backward, binding]);
 	}
+};
+
+conts _onSwitcherListItemButtonPressEvent = function(actor, event) {
+	if (event.get_button() == 3) {
+		this._select(i, null, true);
+		this._showSelectedActionsMenu();
+		return Clutter.EVENT_STOP;
+	}
+	return Clutter.EVENT_PROPAGATE;
 };
 
 const AppSwitcherPopup_keyPressHandler_mod = function(keysym, action) {
@@ -152,6 +167,7 @@ const AppSwitcherPopup_showSelectedActionsMenu = function(direction) {
 	let actionsMenu = this._getActionsMenu(appIcon);
 	if (actionsMenu) {
 		this._menuManager._changeMenu(actionsMenu);
+		this._menuManager.ignoreRelease();
 		if (direction == Gtk.DirectionType.UP) {
 			let actionsMenuItems = actionsMenu._getMenuItems();
 			actionsMenuItems[actionsMenuItems.length - 1].setActive(true);
@@ -243,8 +259,6 @@ var _onActionsMenuActorKeyReleased = function(actor, event) {
 	}
 	return Clutter.EVENT_STOP;
 };
-
-// TODO: open actions menu when app icon is right-clicked
 
 // extension functions
 
