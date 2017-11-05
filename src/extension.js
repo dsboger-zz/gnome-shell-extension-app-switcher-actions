@@ -96,7 +96,17 @@ var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
 		 * include actions in the actions menu.
 		 *
 		 * Just add a new entry in the object Main._appSwitcherActionsExtension
-		 * (possibly creating it if not existing already).
+		 * (possibly creating it if not existing already). The entry must be an
+		 * array of item specs, each an object containing the following
+		 * properties:
+		 *
+		 * 		- label: The text to show as the action item label
+		 * 		- action: a function(item, event, app) to be called when the
+		 * 			item is activated
+		 * 		- condition (optional): a function(app) to be called to decide
+		 * 			if the item should be shown for the given app. Omitting
+		 * 			means the item should be shown for every app (even non-
+		 * 			running)
 		 *
 		 * Example:
 		 *
@@ -120,6 +130,15 @@ var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
 		 * 			condition: function(app) { return app.get_id() == "firefox.desktop"; } // works only for Firefox
 		 * 		},
 		 *	];
+		 *
+		 * To remove the action, just delete the created entry from
+		 * Main._appSwitcherActionsExtension. Do not delete
+		 * Main._appSwitcherActionsExtension itself, as other extensions might
+		 * have registered actions.
+		 *
+		 * Example:
+		 *
+		 * 	delete Main._appSwitcherActionsExtension.someExtensionActions;
 		 */
 		if (Main._appSwitcherActionsExtension) {
 			for (let extKey in Main._appSwitcherActionsExtension) {
