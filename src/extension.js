@@ -91,6 +91,51 @@ var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
 			}
 		}
 
+		/*
+		 * Extension point for other GNOME Shell extensions that might want to
+		 * include actions in the actions menu.
+		 *
+		 * Just add a new entry in the object Main._appSwitcherActionsExtension
+		 * (possibly creating it if not existing already).
+		 *
+		 * Example:
+		 *
+		 * 	if (!Main._appSwitcherActionsExtension) {
+		 * 		Main._appSwitcherActionsExtension = {};
+		 * 	}
+		 * 	Main._appSwitcherActionsExtension.someExtensionActions = [
+		 * 		{
+		 *			label: _("Do Something With This App"),
+		 * 			action: Lang.bind(this, this._doSomethingWithThisApp),
+		 * 			condition: function(app) { return true; } // works for every app (even not running!), could be omitted
+		 * 		},
+		 * 		{
+		 *			label: _("Do Something Else"),
+		 * 			action: Lang.bind(this, this._doSomethingElse),
+		 * 			condition: function(app) { return app.get_n_windows() > 0; } // works for every running app
+		 * 		},
+		 * 		{
+		 *			label: _("Do Something With Firefox"),
+		 * 			action: Lang.bind(this, this._doSomethingWithFirefox),
+		 * 			condition: function(app) { return app.get_id() == "firefox.desktop"; } // works only for Firefox
+		 * 		},
+		 *	];
+		 */
+		if (Main._appSwitcherActionsExtension) {
+			for (let extKey in Main._appSwitcherActionsExtension) {
+				let itemSpecs = Main._appSwitcherActionsExtension[extKey];
+				for (let i = 0; i < itemSpecs.length; i++) {
+					let itemSpec = itemSpecs[i];
+					if (itemSpec.label && itemSpec.action && (!itemSpec.condition || itemSpec.condition(this._source.app))) {
+						let item = new PopupMenu.PopupMenuItem(itemSpec.label);
+						this.addMenuItem(item);
+						let app = this._source.app;
+						item.connect('activate', function(source, event) { itemSpec.action(source, event, app); });
+					}
+				}
+			}
+		}
+
 		if (this._source.app.get_n_windows() > 0) {
 			if (this.numMenuItems > 0) {
 				this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
