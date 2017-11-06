@@ -47,78 +47,85 @@ function _getExtensionSettingsToplevel() {
 	return _toplevel;
 }
 
-function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
-	let toplevel = _getExtensionSettingsToplevel();
+function _showDazzleShortcutEditor(settings, shortcutKey, shortcutSummary) {
+	let dialog = new Dazzle.ShortcutAccelDialog({
+			transient_for: _getExtensionSettingsToplevel(),
+			use_header_bar: true,
+			shortcut_title: shortcutSummary });
+	dialog.connect('notify::accelerator', function() {
+				let dividerIndex = dialog.accelerator.indexOf('|');
+				if (dividerIndex >= 0) {
+					dialog.accelerator = dialog.accelerator.substring(0, dividerIndex);
+				}
+			});
+	if (dialog.run() == Gtk.ResponseType.ACCEPT) {
+		if (dialog.accelerator) {
+			settings.set_strv(shortcutKey, [dialog.accelerator]);
+		} else {
+			settings.set_strv(shortcutKey, []);
+		}
+	}
+	dialog.destroy();
+}
+
+function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
+	let dialog = new Gtk.Dialog({
+			transient_for: _getExtensionSettingsToplevel(),
+			use_header_bar: true});
+
+	let cancelButton = dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
+	let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
+	setButton.get_style_context().add_class('suggested-action');
+
+	let messageLabel = new Gtk.Label({
+			visible: true,
+			halign: Gtk.Align.START,
+			label: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
+			use_markup: true });
+	let entry = new Gtk.Entry({
+			visible: true,
+			text: settings.get_strv(shortcutKey).toString() });
+	let errorLabel = new Gtk.Label({
+			visible: true,
+			halign: Gtk.Align.START,
+			opacity: 0,
+			label: "Invalid shortcut description" });
+
+	entry.connect('activate', function() {
+				dialog.response(Gtk.ResponseType.ACCEPT);
+			});
+	entry.connect('notify::text', function() {
+				let shortcuts = entry.text.split(',');
+				for (let shortcut of shortcuts) {
+					let [code, mods] = Gtk.accelerator_parse(shortcut);
+					if (code == 0) {
+						errorLabel.opacity = 1;
+						setButton.sensitive = false;
+						return Gtk.EVENT_PROPAGATE;
+					}
+				}
+				errorLabel.opacity = 0;
+				setButton.sensitive = true;
+				return Gtk.EVENT_PROPAGATE;
+			});
+
+	dialog.get_content_area().margin = 25;
+	dialog.get_content_area().spacing = 20;
+	dialog.get_content_area().pack_start(messageLabel, false, false, 0);
+	dialog.get_content_area().pack_start(entry, false, false, 0);
+	dialog.get_content_area().pack_start(errorLabel, false, false, 0);
+
+	if (dialog.run() == Gtk.ResponseType.ACCEPT) {
+		settings.set_strv(shortcutKey, entry.text.split(','));
+	}
+	dialog.destroy();
+}
+
+function _editShortcut(shortcutKey, shortcutSummary, settings, undazzle) {
 	if (Dazzle && !undazzle) {
-		let dialog = new Dazzle.ShortcutAccelDialog({
-				transient_for: toplevel,
-				use_header_bar: true,
-				shortcut_title: shortcutSummary });
-		dialog.connect('notify::accelerator', function() {
-					let dividerIndex = dialog.accelerator.indexOf('|');
-					if (dividerIndex >= 0) {
-						dialog.accelerator = dialog.accelerator.substring(0, dividerIndex);
-					}
-				});
-		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
-			if (dialog.accelerator) {
-				settings.set_strv(shortcutKey, [dialog.accelerator]);
-			} else {
-				settings.set_strv(shortcutKey, []);
-			}
-		}
-		dialog.destroy();
+		_showDazzleShortcutEditor(settings, shortcutKey, shortcutSummary);
 	} else {
-		let dialog = new Gtk.Dialog({
-				transient_for: toplevel,
-				use_header_bar: true});
-
-		let cancelButton = dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
-		let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
-		setButton.get_style_context().add_class('suggested-action');
-
-		let messageLabel = new Gtk.Label({
-				visible: true,
-				halign: Gtk.Align.START,
-				label: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
-				use_markup: true });
-		let entry = new Gtk.Entry({
-				visible: true,
-				text: settings.get_strv(shortcutKey).toString() });
-		let errorLabel = new Gtk.Label({
-				visible: true,
-				halign: Gtk.Align.START,
-				opacity: 0,
-				label: "Invalid shortcut description" });
-
-		entry.connect('activate', function() {
-					dialog.response(Gtk.ResponseType.ACCEPT);
-				});
-		entry.connect('notify::text', function() {
-					let shortcuts = entry.text.split(',');
-					for (let shortcut of shortcuts) {
-						let [code, mods] = Gtk.accelerator_parse(shortcut);
-						if (code == 0) {
-							errorLabel.opacity = 1;
-							setButton.sensitive = false;
-							return Gtk.EVENT_PROPAGATE;
-						}
-					}
-					errorLabel.opacity = 0;
-					setButton.sensitive = true;
-					return Gtk.EVENT_PROPAGATE;
-				});
-
-		dialog.get_content_area().margin = 25;
-		dialog.get_content_area().spacing = 20;
-		dialog.get_content_area().pack_start(messageLabel, false, false, 0);
-		dialog.get_content_area().pack_start(entry, false, false, 0);
-		dialog.get_content_area().pack_start(errorLabel, false, false, 0);
-
-		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
-			settings.set_strv(shortcutKey, entry.text.split(','));
-		}
-		dialog.destroy();
+		_showTextShortcutEditor(settings, shortcutKey, shortcutSummary);
 	}
 }
 
@@ -189,10 +196,10 @@ function _createShortcutRow(shortcutKey, settings) {
 	}
 
 	row._onUndazzledActivate = function() {
-				_editShortcut(row, shortcutKey, shortcutSummary, settings, true);
+				_editShortcut(shortcutKey, shortcutSummary, settings, true);
 			};
 	row._onActivate = function() {
-				_editShortcut(row, shortcutKey, shortcutSummary, settings, false);
+				_editShortcut(shortcutKey, shortcutSummary, settings, false);
 			};
 	return row;
 }
