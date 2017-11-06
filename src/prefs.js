@@ -52,6 +52,7 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 	if (Dazzle && !undazzle) {
 		let dialog = new Dazzle.ShortcutAccelDialog({
 				transient_for: toplevel,
+				use_header_bar: true,
 				shortcut_title: shortcutSummary });
 		dialog.connect('notify::accelerator', function() {
 					let dividerIndex = dialog.accelerator.indexOf('|');
