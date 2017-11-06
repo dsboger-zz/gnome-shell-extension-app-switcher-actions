@@ -245,7 +245,6 @@ function buildPrefsWidget() {
 								let [hasCoords, x, y] = event.get_coords();
 								let row = listBox.get_row_at_y(y);
 								row._onUndazzledActivate();
-								return Gdk.EVENT_STOP;
 							}
 						});
 				frame.add(listBox);
