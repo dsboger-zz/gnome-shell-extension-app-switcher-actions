@@ -86,10 +86,13 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 			visible: true,
 			text: settings.get_strv(shortcutKey).toString(),
 			activates_default: true });
+	let errorRevealer = new Gtk.Revealer({
+			visible: true,
+			transition_type: Gtk.RevealerTransitionType.CROSSFADE,
+			reveal_child: false });
 	let errorLabel = new Gtk.Label({
 			visible: true,
 			halign: Gtk.Align.START,
-			opacity: 0,
 			label: "Invalid shortcut description" });
 
 	entry.connect('notify::text', function() {
@@ -97,12 +100,12 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 				for (let shortcut of shortcuts) {
 					let [code, mods] = Gtk.accelerator_parse(shortcut);
 					if (code == 0) {
-						errorLabel.opacity = 1;
+						errorRevealer.reveal_child = true;
 						dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, false);
 						return Gtk.EVENT_PROPAGATE;
 					}
 				}
-				errorLabel.opacity = 0;
+				errorRevealer.reveal_child = false;
 				dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, true);
 				return Gtk.EVENT_PROPAGATE;
 			});
@@ -111,7 +114,8 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 	dialog.get_content_area().spacing = 20;
 	dialog.get_content_area().pack_start(messageLabel, false, false, 0);
 	dialog.get_content_area().pack_start(entry, false, false, 0);
-	dialog.get_content_area().pack_start(errorLabel, false, false, 0);
+	errorRevealer.add(errorLabel);
+	dialog.get_content_area().pack_start(errorRevealer, false, false, 0);
 
 	if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 		settings.set_strv(shortcutKey, entry.text.split(','));
