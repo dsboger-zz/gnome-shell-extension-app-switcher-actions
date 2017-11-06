@@ -102,12 +102,12 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 					if (code == 0) {
 						errorRevealer.reveal_child = true;
 						dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, false);
-						return Gtk.EVENT_PROPAGATE;
+						return Gdk.EVENT_PROPAGATE;
 					}
 				}
 				errorRevealer.reveal_child = false;
 				dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, true);
-				return Gtk.EVENT_PROPAGATE;
+				return Gdk.EVENT_PROPAGATE;
 			});
 
 	dialog.get_content_area().margin = 25;
