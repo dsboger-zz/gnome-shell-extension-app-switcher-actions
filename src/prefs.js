@@ -75,10 +75,33 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 		let entry = new Gtk.Entry({
 				visible: true,
 				text: settings.get_strv(shortcutKey).toString() });
+		let errorLabel = new Gtk.Label({
+				visible: true,
+				halign: Gtk.Align.START,
+				opacity: 0,
+				label: "Invalid shortcut description" });
+
 		entry.connect('activate', function() {
 					dialog.response(Gtk.ResponseType.ACCEPT);
 				});
+		entry.connect('notify::text', function() {
+					let shortcuts = entry.text.split(',');
+					for (let shortcut of shortcuts) {
+						let [code, mods] = Gtk.accelerator_parse(shortcut);
+						if (code == 0) {
+							errorLabel.opacity = 1;
+							setButton.sensitive = false;
+							return Gtk.EVENT_PROPAGATE;
+						}
+					}
+					errorLabel.opacity = 0;
+					setButton.sensitive = true;
+					return Gtk.EVENT_PROPAGATE;
+				});
+
 		dialog.get_message_area().pack_start(entry, false, false, 0);
+		dialog.get_message_area().pack_start(errorLabel, false, false, 0);
+
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			settings.set_strv(shortcutKey, entry.text.split(','));
 		}
