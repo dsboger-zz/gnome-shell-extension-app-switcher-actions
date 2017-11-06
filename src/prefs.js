@@ -73,8 +73,8 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 			transient_for: _getExtensionSettingsToplevel(),
 			use_header_bar: true});
 
-	let cancelButton = dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
-	let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
+	dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
+	dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
 	dialog.set_default_response(Gtk.ResponseType.ACCEPT);
 
 	let messageLabel = new Gtk.Label({
