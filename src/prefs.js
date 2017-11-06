@@ -69,7 +69,8 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 				title: GCC_("Set Shortcut"),
 				text: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
 				use_markup: true });
-		dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
+		let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
+		setButton.get_style_context().add_class('suggested-action');
 
 		let entry = new Gtk.Entry({
 				visible: true,
