@@ -75,7 +75,7 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 
 	let cancelButton = dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
 	let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
-	setButton.get_style_context().add_class('suggested-action');
+	dialog.set_default_response(Gtk.ResponseType.ACCEPT);
 
 	let messageLabel = new Gtk.Label({
 			visible: true,
@@ -84,28 +84,26 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 			use_markup: true });
 	let entry = new Gtk.Entry({
 			visible: true,
-			text: settings.get_strv(shortcutKey).toString() });
+			text: settings.get_strv(shortcutKey).toString(),
+			activates_default: true });
 	let errorLabel = new Gtk.Label({
 			visible: true,
 			halign: Gtk.Align.START,
 			opacity: 0,
 			label: "Invalid shortcut description" });
 
-	entry.connect('activate', function() {
-				dialog.response(Gtk.ResponseType.ACCEPT);
-			});
 	entry.connect('notify::text', function() {
 				let shortcuts = entry.text.split(',');
 				for (let shortcut of shortcuts) {
 					let [code, mods] = Gtk.accelerator_parse(shortcut);
 					if (code == 0) {
 						errorLabel.opacity = 1;
-						setButton.sensitive = false;
+						dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, false);
 						return Gtk.EVENT_PROPAGATE;
 					}
 				}
 				errorLabel.opacity = 0;
-				setButton.sensitive = true;
+				dialog.set_response_sensitive(Gtk.ResponseType.ACCEPT, true);
 				return Gtk.EVENT_PROPAGATE;
 			});
 
