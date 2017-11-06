@@ -69,16 +69,19 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 		}
 		dialog.destroy();
 	} else {
-		let dialog = new Gtk.MessageDialog({
+		let dialog = new Gtk.Dialog({
 				transient_for: toplevel,
-				message_type: Gtk.MessageType.QUESTION,
-				buttons: Gtk.ButtonsType.CANCEL,
-				title: GCC_("Set Shortcut"),
-				text: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
-				use_markup: true });
+				use_header_bar: true});
+
+		let cancelButton = dialog.add_button(GCC_("Cancel"), Gtk.ResponseType.CANCEL);
 		let setButton = dialog.add_button(GCC_("Set"), Gtk.ResponseType.ACCEPT);
 		setButton.get_style_context().add_class('suggested-action');
 
+		let messageLabel = new Gtk.Label({
+				visible: true,
+				halign: Gtk.Align.START,
+				label: GCC_("Enter new shortcut to change <b>%s</b>.").format(shortcutSummary),
+				use_markup: true });
 		let entry = new Gtk.Entry({
 				visible: true,
 				text: settings.get_strv(shortcutKey).toString() });
@@ -106,8 +109,11 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 					return Gtk.EVENT_PROPAGATE;
 				});
 
-		dialog.get_message_area().pack_start(entry, false, false, 0);
-		dialog.get_message_area().pack_start(errorLabel, false, false, 0);
+		dialog.get_content_area().margin = 25;
+		dialog.get_content_area().spacing = 20;
+		dialog.get_content_area().pack_start(messageLabel, false, false, 0);
+		dialog.get_content_area().pack_start(entry, false, false, 0);
+		dialog.get_content_area().pack_start(errorLabel, false, false, 0);
 
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			settings.set_strv(shortcutKey, entry.text.split(','));
