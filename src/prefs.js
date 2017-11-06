@@ -53,6 +53,12 @@ function _editShortcut(row, shortcutKey, shortcutSummary, settings, undazzle) {
 		let dialog = new Dazzle.ShortcutAccelDialog({
 				transient_for: toplevel,
 				shortcut_title: shortcutSummary });
+		dialog.connect('notify::accelerator', function() {
+					let dividerIndex = dialog.accelerator.indexOf('|');
+					if (dividerIndex >= 0) {
+						dialog.accelerator = dialog.accelerator.substring(0, dividerIndex);
+					}
+				});
 		if (dialog.run() == Gtk.ResponseType.ACCEPT) {
 			if (dialog.accelerator) {
 				settings.set_strv(shortcutKey, [dialog.accelerator]);
