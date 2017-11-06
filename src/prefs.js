@@ -123,14 +123,6 @@ function _showTextShortcutEditor(settings, shortcutKey, shortcutSummary) {
 	dialog.destroy();
 }
 
-function _editShortcut(shortcutKey, shortcutSummary, settings, undazzle) {
-	if (Dazzle && !undazzle) {
-		_showDazzleShortcutEditor(settings, shortcutKey, shortcutSummary);
-	} else {
-		_showTextShortcutEditor(settings, shortcutKey, shortcutSummary);
-	}
-}
-
 function _createShortcutRow(shortcutKey, settings) {
 	let schemaKey = settings.settings_schema.get_key(shortcutKey);
 	let shortcutSummary = schemaKey.get_summary();
@@ -198,10 +190,14 @@ function _createShortcutRow(shortcutKey, settings) {
 	}
 
 	row._onUndazzledActivate = function() {
-				_editShortcut(shortcutKey, shortcutSummary, settings, true);
+				_showTextShortcutEditor(settings, shortcutKey, shortcutSummary);
 			};
 	row._onActivate = function() {
-				_editShortcut(shortcutKey, shortcutSummary, settings, false);
+				if (Dazzle) {
+					_showDazzleShortcutEditor(settings, shortcutKey, shortcutSummary);
+				} else {
+					_showTextShortcutEditor(settings, shortcutKey, shortcutSummary);
+				}
 			};
 	return row;
 }
