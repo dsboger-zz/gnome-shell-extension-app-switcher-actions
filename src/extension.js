@@ -46,13 +46,18 @@ var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
 	Extends: PopupMenu.PopupMenu,
 
 	_init: function(source) {
-		this.parent(source.actor, 0.5, St.Side.BOTTOM);
+		let actor = source.actor ? source.actor : source; // compatibility with GS < 3.30.1
+		this.parent(actor, 0.5, St.Side.BOTTOM);
 		this._source = source;
-		source.actor.connect('notify::mapped', Lang.bind(this, function () {
-			if (!source.actor.mapped)
+		this._sourceMappedId = actor.connect('notify::mapped', Lang.bind(this, function () {
+			if (!actor.mapped)
 				this.close();
 		}));
-		source.actor.connect('destroy', Lang.bind(this, this.destroy));
+		actor.connect('destroy', Lang.bind(this, function () {
+		    if (this._sourceMappedId)
+		        actor.disconnect(this._sourceMappedId);
+		    this.destroy();
+		}));
 		Main.uiGroup.add_actor(this.actor);
 	},
 
@@ -173,6 +178,11 @@ var AppActionsMenu = new Lang.Class({ // based on AppDisplay.AppIconMenu
 // Window manager "mods"
 
 var _startSwitcher = function(display, screen, window, binding) { // adapted from WindowManager._startSwitcher
+	if (binding === undefined) { // compatibility with GS >= 3.30
+		binding = window;
+		window = screen;
+	}
+
 	/* prevent a corner case where both popups show up at once */
 	if (this._workspaceSwitcherPopup != null) {
 		this._workspaceSwitcherPopup.destroy();
